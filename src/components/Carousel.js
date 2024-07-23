@@ -33,13 +33,30 @@ const Carousel = () => {
         }
     }, []);
 
-    
+    const addAndRemoveImage = () => {
+        const carousel = carouselRef.current;
+        if (carousel) {
+            const slideWidth = window.innerWidth;
+            if (carousel.scrollLeft < slideWidth*2) {
+                setImages(prevImages => {
+                    const newImages = [prevImages[0] - 1, ...prevImages.slice(0, -1)];
+                    return newImages;
+                });
+            } else if (carousel.scrollLeft > slideWidth*2) {
+                setImages(prevImages => {
+                    const newImages = [...prevImages.slice(1), prevImages[prevImages.length - 1] + 1];
+                    return newImages;
+                });
+            }
+        }
+    }
 
     const moveToCenter = () => {
         const carousel = carouselRef.current;
         if (carousel) {
             const slideWidth = window.innerWidth;
             carousel.style.scrollBehavior = 'auto';
+            addAndRemoveImage();
             carousel.scrollLeft = slideWidth * 2;
             carousel.style.scrollBehavior = 'smooth';
         }
@@ -95,7 +112,7 @@ const Carousel = () => {
             onTouchMove={onTouchMove} 
             onTouchEnd={onTouchEnd}>
 
-            {images.map((val, index) => <CarouselImage key={index} />)}
+            {images.map((val, index) => <CarouselImage key={index} >{val}</CarouselImage>)}
 
         </CarouselContainer>
     </CarouselWrapper>)
