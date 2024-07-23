@@ -23,11 +23,11 @@ const Carousel = () => {
                 moveToCenter();
             },25)
 
-            window.addEventListener("keydown", preventArrowKeyScroll);
+            carousel.addEventListener("keydown", preventArrowKeyScroll);
             carousel.addEventListener('scroll', handleScroll);
 
             return () => {
-                window.removeEventListener("keydown", preventArrowKeyScroll);
+                carousel.removeEventListener("keydown", preventArrowKeyScroll);
                 carousel.removeEventListener('scroll', handleScroll);
             };
         }
@@ -106,7 +106,8 @@ const Carousel = () => {
     return (
     <CarouselWrapper>
         <CarouselContainer
-            ref={carouselRef}  
+            ref={carouselRef} 
+            tabIndex={0}
             onWheel={onWheel} 
             onTouchStart={onTouchStart} 
             onTouchMove={onTouchMove} 
