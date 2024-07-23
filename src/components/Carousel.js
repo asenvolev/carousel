@@ -20,11 +20,9 @@ const Carousel = () => {
         }
     }
 
-    const onWheel = (e) => {
+    const onWheel = throttle((e) => {
         moveToNextSlide(e.deltaY)
-    };
-
-    const debouncedOnScroll = throttle(onWheel, 500);
+    }, 500);
 
     const onTouchStart = (e) => {
         const carousel = carouselRef.current;
@@ -34,18 +32,19 @@ const Carousel = () => {
         }
     };
 
-    const onTouchMove = (e) => {
+    const onTouchMove = throttle((e) => {
         const carousel = carouselRef.current;
         if (carousel) {
             const x = e.touches[0].pageX;
             const walk = x - startX;
             carousel.scrollLeft = scrollLeft - walk;
         }
-    };
+    }, 50);
 
     const onTouchEnd = (e) => {
         const endX = e.changedTouches[0].pageX;
         const deltaX = endX - startX;
+        
         moveToNextSlide(deltaX)
     };
 
@@ -53,7 +52,7 @@ const Carousel = () => {
     <CarouselWrapper>
         <CarouselContainer
             ref={carouselRef}  
-            onWheel={debouncedOnScroll} 
+            onWheel={onWheel} 
             onTouchStart={onTouchStart} 
             onTouchMove={onTouchMove} 
             onTouchEnd={onTouchEnd}>
@@ -77,9 +76,11 @@ const CarouselWrapper = styled.div`
 const CarouselContainer = styled.div`
     width:100%;
     height:100%;
+
     overflow-x:hidden;
+    touch-action: pan-y;
     scroll-behavior: smooth;
-    touch-action:none;
+    scroll-snap-type: x mandatory; 
 
     display:flex;
     flex-wrap:no-wrap;
@@ -87,8 +88,11 @@ const CarouselContainer = styled.div`
 `;
 
 const CarouselImage = styled.div`
+    scroll-snap-align: center;
+
     min-width:100%;
     height:100%;
+    flex-shrink:0;
     background-color:green;
     box-shadow: inset 0 0 0 1px yellow;
 `;
