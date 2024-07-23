@@ -1,11 +1,49 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import { throttle } from "../utils/helpers";
+import { throttle, debounce } from "../utils/helpers";
 
 const Carousel = () => {
     const carouselRef = useRef(null);
     const [startX, setStartX] = useState(0);
     const [scrollLeft, setScrollLeft] = useState(0);
+    const [images, setImages] = useState([0, 1, 2, 3, 4]);
+
+    useEffect(() => {
+        moveToCenter();
+        const carousel = carouselRef.current;
+        if (carousel) {
+            const preventArrowKeyScroll = (e) => {
+                if (["ArrowLeft", "ArrowRight"].includes(e.key)) {
+                    e.preventDefault();
+                }
+            };
+
+            const handleScroll = debounce(() => {
+                console.log('helloooo');
+                moveToCenter();
+            },25)
+
+            window.addEventListener("keydown", preventArrowKeyScroll);
+            carousel.addEventListener('scroll', handleScroll);
+
+            return () => {
+                window.removeEventListener("keydown", preventArrowKeyScroll);
+                carousel.removeEventListener('scroll', handleScroll);
+            };
+        }
+    }, []);
+
+    
+
+    const moveToCenter = () => {
+        const carousel = carouselRef.current;
+        if (carousel) {
+            const slideWidth = window.innerWidth;
+            carousel.style.scrollBehavior = 'auto';
+            carousel.scrollLeft = slideWidth * 2;
+            carousel.style.scrollBehavior = 'smooth';
+        }
+    }
 
     const moveToNextSlide = (delta) => {
         const carousel = carouselRef.current;
@@ -57,9 +95,7 @@ const Carousel = () => {
             onTouchMove={onTouchMove} 
             onTouchEnd={onTouchEnd}>
 
-            <CarouselImage/>
-            <CarouselImage/>
-            <CarouselImage/>
+            {images.map((val, index) => <CarouselImage key={index} />)}
 
         </CarouselContainer>
     </CarouselWrapper>)
