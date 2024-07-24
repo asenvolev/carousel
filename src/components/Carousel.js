@@ -5,6 +5,7 @@ import { throttle, debounce } from "../utils/helpers";
 const Carousel = () => {
     const carouselRef = useRef(null);
     const [startX, setStartX] = useState(0);
+    const [scrollLeft, setScrollLeft] = useState(0);
     const [images, setImages] = useState([0, 1, 2, 3, 4]);
 
     useEffect(() => {
@@ -69,7 +70,9 @@ const Carousel = () => {
         if (carousel) {
             const slideWidth = window.innerWidth;
             const currentSlide = Math.round(carousel.scrollLeft / slideWidth);
-            if (delta < 0) {
+            if (Math.abs(delta) > slideWidth/2) {
+                carousel.scrollLeft = currentSlide * slideWidth;
+            } else if (delta < 0) {
                 carousel.scrollLeft = (currentSlide+1) * slideWidth;
             } else if (delta > 0) {
                 carousel.scrollLeft = (currentSlide-1) * slideWidth;
@@ -85,6 +88,7 @@ const Carousel = () => {
         const carousel = carouselRef.current;
         if (carousel) {
             setStartX(e.touches[0].pageX);
+            setScrollLeft(carousel.scrollLeft);
         }
     };
 
@@ -93,7 +97,7 @@ const Carousel = () => {
         if (carousel) {
             const x = e.touches[0].pageX;
             const walk = x - startX;
-            carousel.scrollLeft -= walk;
+            carousel.scrollLeft = scrollLeft - walk;
         }
     }, 150);
 
@@ -102,6 +106,7 @@ const Carousel = () => {
         const deltaX = endX - startX;
         
         moveToNextSlide(deltaX)
+        
     };
 
     return (
