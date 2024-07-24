@@ -5,11 +5,10 @@ import { throttle, debounce } from "../utils/helpers";
 const Carousel = () => {
     const carouselRef = useRef(null);
     const [startX, setStartX] = useState(0);
-    const [scrollLeft, setScrollLeft] = useState(0);
     const [images, setImages] = useState([0, 1, 2, 3, 4]);
 
     useEffect(() => {
-        moveToCenter();
+        placeScrollInTheMiddle();
         const carousel = carouselRef.current;
         if (carousel) {
             const preventArrowKeyScroll = (e) => {
@@ -20,15 +19,18 @@ const Carousel = () => {
 
             const handleScroll = debounce(() => {
                 console.log('helloooo');
-                moveToCenter();
+                // moveToCenter();
             },25)
+
+            const onResize = throttle(()=>placeScrollInTheMiddle(false),25);
 
             carousel.addEventListener("keydown", preventArrowKeyScroll);
             carousel.addEventListener('scroll', handleScroll);
-
+            window.addEventListener('resize', onResize);
             return () => {
                 carousel.removeEventListener("keydown", preventArrowKeyScroll);
                 carousel.removeEventListener('scroll', handleScroll);
+                window.addEventListener('resize', onResize);
             };
         }
     }, []);
@@ -51,12 +53,12 @@ const Carousel = () => {
         }
     }
 
-    const moveToCenter = () => {
+    const placeScrollInTheMiddle = (addRemoveImage) => {
         const carousel = carouselRef.current;
         if (carousel) {
             const slideWidth = window.innerWidth;
             carousel.style.scrollBehavior = 'auto';
-            addAndRemoveImage();
+            addRemoveImage && addAndRemoveImage();
             carousel.scrollLeft = slideWidth * 2;
             carousel.style.scrollBehavior = 'smooth';
         }
@@ -76,14 +78,13 @@ const Carousel = () => {
     }
 
     const onWheel = throttle((e) => {
-        moveToNextSlide(e.deltaY)
-    }, 500);
+        moveToNextSlide(e.deltaY);
+    }, 1000);
 
     const onTouchStart = (e) => {
         const carousel = carouselRef.current;
         if (carousel) {
             setStartX(e.touches[0].pageX);
-            setScrollLeft(carousel.scrollLeft);
         }
     };
 
@@ -92,9 +93,9 @@ const Carousel = () => {
         if (carousel) {
             const x = e.touches[0].pageX;
             const walk = x - startX;
-            carousel.scrollLeft = scrollLeft - walk;
+            carousel.scrollLeft -= walk;
         }
-    }, 50);
+    }, 150);
 
     const onTouchEnd = (e) => {
         const endX = e.changedTouches[0].pageX;
@@ -132,9 +133,8 @@ const CarouselContainer = styled.div`
     height:100%;
 
     overflow-x:hidden;
-    touch-action: pan-y;
+    touch-action: none;
     scroll-behavior: smooth;
-    scroll-snap-type: x mandatory; 
 
     display:flex;
     flex-wrap:no-wrap;
