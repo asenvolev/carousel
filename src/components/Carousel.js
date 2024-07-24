@@ -4,6 +4,7 @@ import { throttle, debounce } from "../utils/helpers";
 
 const Carousel = () => {
     const carouselRef = useRef(null);
+    const isTouching = useRef(false);
     const [startX, setStartX] = useState(0);
     const [scrollLeft, setScrollLeft] = useState(0);
     const [images, setImages] = useState([0, 1, 2, 3, 4]);
@@ -19,9 +20,10 @@ const Carousel = () => {
             };
 
             const handleScroll = debounce(() => {
-                console.log('helloooo');
-                // moveToCenter();
-            },25)
+                if (!isTouching.current) {
+                    placeScrollInTheMiddle(true);
+                }
+            },200)
 
             const onResize = throttle(()=>placeScrollInTheMiddle(false),25);
 
@@ -40,30 +42,44 @@ const Carousel = () => {
         const carousel = carouselRef.current;
         if (carousel) {
             const slideWidth = window.innerWidth;
-            if (carousel.scrollLeft < slideWidth*2) {
+            const currentSlide = Math.round(carousel.scrollLeft / slideWidth);
+            if (currentSlide < 2) {
                 setImages(prevImages => {
                     const newImages = [prevImages[0] - 1, ...prevImages.slice(0, -1)];
+                    carousel.style.scrollBehavior = 'auto';
+                    carousel.scrollLeft = slideWidth * 2;
+                    carousel.style.scrollBehavior = 'smooth';
                     return newImages;
                 });
-            } else if (carousel.scrollLeft > slideWidth*2) {
+            } else if (currentSlide > 2) {
                 setImages(prevImages => {
                     const newImages = [...prevImages.slice(1), prevImages[prevImages.length - 1] + 1];
+                    carousel.style.scrollBehavior = 'auto';
+                    carousel.scrollLeft = slideWidth * 2;
+                    carousel.style.scrollBehavior = 'smooth';
+
                     return newImages;
                 });
             }
         }
-    }
+    };
 
     const placeScrollInTheMiddle = (addRemoveImage) => {
         const carousel = carouselRef.current;
         if (carousel) {
-            const slideWidth = window.innerWidth;
-            carousel.style.scrollBehavior = 'auto';
-            addRemoveImage && addAndRemoveImage();
-            carousel.scrollLeft = slideWidth * 2;
-            carousel.style.scrollBehavior = 'smooth';
+            
+            if (addRemoveImage) {
+                addAndRemoveImage();
+            } else {
+                const slideWidth = window.innerWidth;
+
+                carousel.style.scrollBehavior = 'auto';
+                carousel.scrollLeft = slideWidth * 2;
+                carousel.style.scrollBehavior = 'smooth';
+            }
+            
         }
-    }
+    };
 
     const moveToNextSlide = (delta) => {
         const carousel = carouselRef.current;
@@ -85,6 +101,7 @@ const Carousel = () => {
     }, 1000);
 
     const onTouchStart = (e) => {
+        isTouching.current = true;
         const carousel = carouselRef.current;
         if (carousel) {
             setStartX(e.touches[0].pageX);
@@ -102,9 +119,9 @@ const Carousel = () => {
     }, 150);
 
     const onTouchEnd = (e) => {
+        isTouching.current = false;
         const endX = e.changedTouches[0].pageX;
         const deltaX = endX - startX;
-        
         moveToNextSlide(deltaX)
         
     };
