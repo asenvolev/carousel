@@ -150,11 +150,9 @@ const CarouselContainer = styled.div`
     display: flex;
     flex-wrap: no-wrap;
     align-items: center;
-    transition: transform 0.3s ease;
 `;
 
 const CarouselImage = styled.div`
-    scroll-snap-align: center;
     min-width: 100%;
     height: 100%;
     flex-shrink: 0;
