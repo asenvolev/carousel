@@ -11,7 +11,7 @@ const Carousel = () => {
     const [images, setImages] = useState([0, 1, 2, 3, 4]);
 
     useEffect(() => {
-        placeScrollInTheMiddle();
+        setTranslateXWithoutTransition(-window.innerWidth * 2)
         const carousel = carouselRef.current;
         if (carousel) {
             const preventArrowKeyScroll = (e) => {
@@ -19,7 +19,7 @@ const Carousel = () => {
                     e.preventDefault();
                 }
             };
-            const onResize = throttle(() => placeScrollInTheMiddle(false), 25);
+            const onResize = throttle(() => setTranslateXWithoutTransition(-window.innerWidth * 2), 25);
 
             carousel.addEventListener("keydown", preventArrowKeyScroll);
             window.addEventListener('resize', onResize);
@@ -47,18 +47,6 @@ const Carousel = () => {
                     setTranslateXWithoutTransition(-slideWidth * 2);
                     return newImages;
                 });
-            }
-        }
-    };
-
-    const placeScrollInTheMiddle = (addRemoveImage) => {
-        const carousel = carouselRef.current;
-        if (carousel) {
-            const slideWidth = window.innerWidth;
-            if (addRemoveImage) {
-                addAndRemoveImage();
-            } else {
-                setTranslateXWithoutTransition(-slideWidth * 2);
             }
         }
     };
@@ -103,10 +91,13 @@ const Carousel = () => {
         const endX = e.changedTouches[0].pageX;
         const deltaX = endX - startX;
         moveToNextSlide(deltaX);
+        setStartX(0);
     };
 
     const onTransitionEnd = () => {
-        placeScrollInTheMiddle(true);
+        if (!startX) {
+            addAndRemoveImage();
+        }
     }
 
     return (
