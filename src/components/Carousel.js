@@ -9,8 +9,10 @@ const Carousel = () => {
     const [initialTranslateX, setInitialTranslateX] = useState(0);
     const [transitionEnabled, setTransitionEnabled] = useState(true);
     const [images, setImages] = useState([0, 1, 2, 3, 4]);
+    const [imageUrls, setImageUrls] = useState([]);
 
     useEffect(() => {
+        fetchImages();
         setTranslateXWithoutTransition(-window.innerWidth * 2)
         const carousel = carouselRef.current;
         if (carousel) {
@@ -19,20 +21,30 @@ const Carousel = () => {
                     e.preventDefault();
                 }
             };
-            const onResize = throttle(() => setTranslateXWithoutTransition(-window.innerWidth * 2), 25);
+            const onResize = throttle(() => setTranslateXWithoutTransition(-window.innerWidth * 2), 1);
 
-            const handleWheel = throttle((e)=>onWheel(e),500);
 
-            carousel.addEventListener('wheel', handleWheel);
+            carousel.addEventListener('wheel', onWheel);
             carousel.addEventListener("keydown", preventArrowKeyScroll);
             window.addEventListener('resize', onResize);
             return () => {
                 carousel.removeEventListener("keydown", preventArrowKeyScroll);
-                carousel.removeEventListener('wheel', handleWheel);
+                carousel.removeEventListener('wheel', onWheel);
                 window.removeEventListener('resize', onResize);
             };
         }
     }, []);
+
+    const fetchImages = async () => {
+        try {
+            const response = await fetch('https://picsum.photos/v2/list?page=2&limit=10');
+            const data = await response.json();
+            const urls = data.map(image => image.download_url);
+            setImageUrls(urls);
+        } catch (error) {
+            console.error('Error fetching images:', error);
+        }
+    };
 
     const addAndRemoveImage = () => {
         const carousel = carouselRef.current;
@@ -79,11 +91,9 @@ const Carousel = () => {
         });
     };
 
-    const onWheel = (e) => {
+    const onWheel = throttle((e) => {
         moveToNextSlide(e.deltaY);
-    };
-
-    // const onWheelThrottled = useCallback(throttle(onWheel, 500), []);
+    },500);
 
     const onTouchStart = (e) => {
         setStartX(e.touches[0].pageX);
@@ -120,7 +130,13 @@ const Carousel = () => {
                 style={{ transform: `translateX(${translateX}px)`, transition: transitionEnabled ? 'transform 0.3s ease' : 'none' }}
                 onTransitionEnd={onTransitionEnd}
             >
-                {images.map((val, index) => <CarouselImage key={index}>{val}</CarouselImage>)}
+                {images.map((val, index) => 
+                    <CarouselImage 
+                        key={index} 
+                        bgrImg={imageUrls[val >= 0 ? val % imageUrls.length : imageUrls.length + val % imageUrls.length-1]} 
+                    >
+                        {val >= 0 ? val % imageUrls.length : imageUrls.length + val % imageUrls.length-1}
+                    </CarouselImage>)}
             </CarouselContainer>
         </CarouselWrapper>
     );
@@ -152,4 +168,6 @@ const CarouselImage = styled.div`
     flex-shrink: 0;
     background-color: green;
     box-shadow: inset 0 0 0 1px yellow;
+    background: transparent url(${props => props.bgrImg}) no-repeat center center;
+    background-size:cover;
 `;
