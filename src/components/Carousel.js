@@ -2,18 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { throttle } from "../utils/helpers";
 
-const Carousel = () => {
+const DEFAULT_TRANSLATE = -window.innerWidth * 2
+
+const Carousel = ({imageUrls}) => {
     const carouselRef = useRef(null);
     const [startX, setStartX] = useState(0);
-    const [translateX, setTranslateX] = useState(0);
+    const [translateX, setTranslateX] = useState(DEFAULT_TRANSLATE);
     const [initialTranslateX, setInitialTranslateX] = useState(0);
     const [transitionEnabled, setTransitionEnabled] = useState(true);
-    const [images, setImages] = useState([0, 1, 2, 3, 4]);
-    const [imageUrls, setImageUrls] = useState([]);
+    const [imageIndexes, setImageIndexes] = useState(Array.from({ length: 5 }, (_, index) => index));
+
 
     useEffect(() => {
-        fetchImages();
-        setTranslateXWithoutTransition(-window.innerWidth * 2)
         const carousel = carouselRef.current;
         if (carousel) {
             const preventArrowKeyScroll = (e) => {
@@ -35,16 +35,6 @@ const Carousel = () => {
         }
     }, []);
 
-    const fetchImages = async () => {
-        try {
-            const response = await fetch('https://picsum.photos/v2/list?page=2&limit=10');
-            const data = await response.json();
-            const urls = data.map(image => image.download_url);
-            setImageUrls(urls);
-        } catch (error) {
-            console.error('Error fetching images:', error);
-        }
-    };
 
     const addAndRemoveImage = () => {
         const carousel = carouselRef.current;
@@ -52,13 +42,13 @@ const Carousel = () => {
             const slideWidth = window.innerWidth;
             const currentSlide = Math.round(translateX / -slideWidth);
             if (currentSlide < 2) {
-                setImages(prevImages => {
+                setImageIndexes(prevImages => {
                     const newImages = [prevImages[0] - 1, ...prevImages.slice(0, -1)];
                     setTranslateXWithoutTransition(-slideWidth * 2);
                     return newImages;
                 });
             } else if (currentSlide > 2) {
-                setImages(prevImages => {
+                setImageIndexes(prevImages => {
                     const newImages = [...prevImages.slice(1), prevImages[prevImages.length - 1] + 1];
                     setTranslateXWithoutTransition(-slideWidth * 2);
                     return newImages;
@@ -77,7 +67,7 @@ const Carousel = () => {
 
     const moveToNextSlide = (delta) => {
         const slideWidth = window.innerWidth;
-        setTranslateX((prevTranslateX) => {//move inside cause of stale state from onWheel
+        setTranslateX((prevTranslateX) => {
             const currentSlide = Math.round(prevTranslateX / -slideWidth);
             let newTranslateX;
             if (Math.abs(delta) > slideWidth / 2) {
@@ -103,7 +93,7 @@ const Carousel = () => {
     const onTouchMove = throttle((e) => {
         const x = e.touches[0].pageX;
         const walk = x - startX;
-        setTranslateX(initialTranslateX + walk); //always moves from beggining of the div
+        setTranslateX(initialTranslateX + walk);
     }, 150);
 
     const onTouchEnd = (e) => {
@@ -130,13 +120,14 @@ const Carousel = () => {
                 style={{ transform: `translateX(${translateX}px)`, transition: transitionEnabled ? 'transform 0.3s ease' : 'none' }}
                 onTransitionEnd={onTransitionEnd}
             >
-                {images.map((val, index) => 
-                    <CarouselImage 
+                {imageIndexes.map((val, index) => {
+                    const imgIndex = (val + imageUrls.length) % imageUrls.length;
+                     return (
+                     <CarouselImage 
                         key={index} 
-                        bgrImg={imageUrls[val >= 0 ? val % imageUrls.length : imageUrls.length + val % imageUrls.length-1]} 
-                    >
-                        {val >= 0 ? val % imageUrls.length : imageUrls.length + val % imageUrls.length-1}
-                    </CarouselImage>)}
+                        bgrimg={imageUrls[imgIndex]} 
+                    />)
+                })}
             </CarouselContainer>
         </CarouselWrapper>
     );
@@ -144,10 +135,11 @@ const Carousel = () => {
 
 export default Carousel;
 
+
+
 const CarouselWrapper = styled.div`
     width: 100%;
-    height: 100vh;
-    background-color: blue;
+    height: 100%;
     overflow: hidden;
 `;
 
@@ -166,8 +158,6 @@ const CarouselImage = styled.div`
     min-width: 100%;
     height: 100%;
     flex-shrink: 0;
-    background-color: green;
-    box-shadow: inset 0 0 0 1px yellow;
-    background: transparent url(${props => props.bgrImg}) no-repeat center center;
+    background: transparent url(${props => props.bgrimg}) no-repeat center center;
     background-size:cover;
 `;
