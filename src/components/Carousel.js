@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import { throttle, debounce } from "../utils/helpers";
+import { throttle } from "../utils/helpers";
 
 const Carousel = () => {
     const carouselRef = useRef(null);
@@ -21,10 +21,14 @@ const Carousel = () => {
             };
             const onResize = throttle(() => setTranslateXWithoutTransition(-window.innerWidth * 2), 25);
 
+            const handleWheel = throttle((e)=>onWheel(e),500);
+
+            carousel.addEventListener('wheel', handleWheel);
             carousel.addEventListener("keydown", preventArrowKeyScroll);
             window.addEventListener('resize', onResize);
             return () => {
                 carousel.removeEventListener("keydown", preventArrowKeyScroll);
+                carousel.removeEventListener('wheel', handleWheel);
                 window.removeEventListener('resize', onResize);
             };
         }
@@ -61,20 +65,25 @@ const Carousel = () => {
 
     const moveToNextSlide = (delta) => {
         const slideWidth = window.innerWidth;
-        const currentSlide = Math.round(translateX / -slideWidth);
-        if (Math.abs(delta) > slideWidth / 2) {
-            setTranslateX(currentSlide * -slideWidth);
-        } else 
-        if (delta < 0) {
-            setTranslateX((currentSlide + 1) * -slideWidth);
-        } else if (delta > 0) {
-            setTranslateX((currentSlide - 1) * -slideWidth);
-        }
+        setTranslateX((prevTranslateX) => {//move inside cause of stale state from onWheel
+            const currentSlide = Math.round(prevTranslateX / -slideWidth);
+            let newTranslateX;
+            if (Math.abs(delta) > slideWidth / 2) {
+                newTranslateX = currentSlide * -slideWidth;
+            } else if (delta < 0) {
+                newTranslateX = (currentSlide + 1) * -slideWidth;
+            } else if (delta > 0) {
+                newTranslateX = (currentSlide - 1) * -slideWidth;
+            }
+            return newTranslateX;
+        });
     };
 
-    const onWheel = throttle((e) => {
+    const onWheel = (e) => {
         moveToNextSlide(e.deltaY);
-    }, 1000);
+    };
+
+    // const onWheelThrottled = useCallback(throttle(onWheel, 500), []);
 
     const onTouchStart = (e) => {
         setStartX(e.touches[0].pageX);
@@ -105,7 +114,6 @@ const Carousel = () => {
             <CarouselContainer
                 ref={carouselRef}
                 tabIndex={0}
-                onWheel={onWheel}
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
