@@ -41,7 +41,7 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
                 setCurrentIndexWithoutTransition(imagesToShiftCount+1);
                 return newImages;
             });
-        } else if (currentIndex > (imagesToShiftCount * 2 - 1)) {
+        } else if (currentIndex > imageIndexes.length - 2) {
             setImageIndexes(prevImages => {
                 const newImages = [...prevImages.slice(imagesToShiftCount), ...Array.from({ length: imagesToShiftCount }, (_, i) => prevImages[prevImages.length - 1] + (i + 1))];
                 setCurrentIndexWithoutTransition(imagesToShiftCount);
@@ -88,6 +88,7 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
 
     const onTransitionEnd = () => {
         if (!startX) {
+
             addAndRemoveImage();
         }
     }
