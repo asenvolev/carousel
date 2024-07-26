@@ -7,7 +7,7 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
     const carouselRef = useRef(null);
     const [startX, setStartX] = useState(0);
     const [translateX, setTranslateX] = useState(-window.innerWidth * imagesToShiftCount);
-    const [initialTranslateX, setInitialTranslateX] = useState(0);
+    const [touchStartIndex, setTouchStartIndex] = useState(0);
     const [transitionEnabled, setTransitionEnabled] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(imagesToShiftCount);
     const [imageIndexes, setImageIndexes] = useState(Array.from({ length: 2*imagesToShiftCount+1 }, (_, index) => index));
@@ -58,7 +58,13 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
     };
 
     const moveToNextSlide = (delta) => {
-        if (delta < 0) {
+        if (currentIndex%1) {
+            if (delta < 0) {
+                setCurrentIndex(prevIndex => Math.ceil(prevIndex));
+            } else {
+                setCurrentIndex(prevIndex => Math.floor(prevIndex));
+            }
+        } else if (delta < 0) {
             setCurrentIndex(prevIndex => prevIndex+1);
         } else if (delta > 0) {
             setCurrentIndex(prevIndex => prevIndex-1);
@@ -71,13 +77,14 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
 
     const onTouchStart = (e) => {
         setStartX(e.touches[0].pageX);
-        setInitialTranslateX(translateX);
+        setTouchStartIndex(currentIndex);
     };
 
     const onTouchMove = throttle((e) => {
         const x = e.touches[0].pageX;
         const walk = x - startX;
-        setTranslateX(initialTranslateX + walk);
+        const percentageWalk = (walk / carouselRef.current.clientWidth);
+        setCurrentIndex(touchStartIndex - percentageWalk);
     }, 150);
 
     const onTouchEnd = (e) => {
