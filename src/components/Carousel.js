@@ -6,7 +6,6 @@ import { throttle } from "../utils/helpers";
 const Carousel = ({imageUrls, imagesToShiftCount}) => {
     const carouselRef = useRef(null);
     const [startX, setStartX] = useState(0);
-    const [translateX, setTranslateX] = useState(-window.innerWidth * imagesToShiftCount);
     const [touchStartIndex, setTouchStartIndex] = useState(0);
     const [transitionEnabled, setTransitionEnabled] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(imagesToShiftCount);
@@ -21,7 +20,9 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
                     e.preventDefault();
                 }
             };
-
+            const onWheel = throttle((e) => {
+                moveToNextSlide(e.deltaY);
+            },500);
 
             carousel.addEventListener('wheel', onWheel);
             carousel.addEventListener("keydown", preventArrowKeyScroll);
@@ -58,22 +59,13 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
     };
 
     const moveToNextSlide = (delta) => {
-        if (currentIndex%1) {
-            if (delta < 0) {
-                setCurrentIndex(prevIndex => Math.ceil(prevIndex));
-            } else {
-                setCurrentIndex(prevIndex => Math.floor(prevIndex));
+        setCurrentIndex(prevIndex => {
+            if (prevIndex % 1 !== 0) {
+                return delta < 0 ? Math.ceil(prevIndex) : Math.floor(prevIndex);
             }
-        } else if (delta < 0) {
-            setCurrentIndex(prevIndex => prevIndex+1);
-        } else if (delta > 0) {
-            setCurrentIndex(prevIndex => prevIndex-1);
-        }
+            return delta < 0 ? prevIndex + 1 : prevIndex - 1;
+        });
     };
-
-    const onWheel = throttle((e) => {
-        moveToNextSlide(e.deltaY);
-    },500);
 
     const onTouchStart = (e) => {
         setStartX(e.touches[0].pageX);
