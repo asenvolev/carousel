@@ -30,7 +30,7 @@ const App = () => {
 
   return (
     <AddYourDimensionsHereItWillFIT>
-      <Carousel imageUrls={imageUrls} />
+      <Carousel imageUrls={imageUrls} imagesToShiftCount={9}/>
     </AddYourDimensionsHereItWillFIT>
   );
 }

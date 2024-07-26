@@ -2,15 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { throttle } from "../utils/helpers";
 
-const DEFAULT_TRANSLATE = -window.innerWidth * 9
 
-const Carousel = ({imageUrls}) => {
+const Carousel = ({imageUrls, imagesToShiftCount}) => {
     const carouselRef = useRef(null);
     const [startX, setStartX] = useState(0);
-    const [translateX, setTranslateX] = useState(DEFAULT_TRANSLATE);
+    const [translateX, setTranslateX] = useState(-window.innerWidth * imagesToShiftCount);
     const [initialTranslateX, setInitialTranslateX] = useState(0);
     const [transitionEnabled, setTransitionEnabled] = useState(true);
-    const [imageIndexes, setImageIndexes] = useState(Array.from({ length: 20 }, (_, index) => index));
+    const [imageIndexes, setImageIndexes] = useState(Array.from({ length: 2*imagesToShiftCount+1 }, (_, index) => index));
 
 
     useEffect(() => {
@@ -21,7 +20,7 @@ const Carousel = ({imageUrls}) => {
                     e.preventDefault();
                 }
             };
-            const onResize = throttle(() => setTranslateXWithoutTransition(-window.innerWidth * 9), 1);
+            const onResize = throttle(() => setTranslateXWithoutTransition(-window.innerWidth * imagesToShiftCount), 10);
 
 
             carousel.addEventListener('wheel', onWheel);
@@ -43,14 +42,14 @@ const Carousel = ({imageUrls}) => {
             const currentSlide = Math.round(translateX / -slideWidth);
             if (currentSlide < 2) {
                 setImageIndexes(prevImages => {
-                    const newImages = [...Array.from({ length: 9 }, (_, i) => prevImages[0] - (i + 1)).reverse(), ...prevImages.slice(0, -9)];
-                    setTranslateXWithoutTransition(-slideWidth * 10);
+                    const newImages = [...Array.from({ length: imagesToShiftCount }, (_, i) => prevImages[0] - (i + 1)).reverse(), ...prevImages.slice(0, -imagesToShiftCount)];
+                    setTranslateXWithoutTransition(-slideWidth * (imagesToShiftCount+1));
                     return newImages;
                 });
-            } else if (currentSlide > 17) {
+            } else if (currentSlide > (imagesToShiftCount * 2 - 1)) {
                 setImageIndexes(prevImages => {
-                    const newImages = [...prevImages.slice(9), ...Array.from({ length: 9 }, (_, i) => prevImages[prevImages.length - 1] + (i + 1))];
-                    setTranslateXWithoutTransition(-slideWidth * 9);
+                    const newImages = [...prevImages.slice(imagesToShiftCount), ...Array.from({ length: imagesToShiftCount }, (_, i) => prevImages[prevImages.length - 1] + (i + 1))];
+                    setTranslateXWithoutTransition(-slideWidth * imagesToShiftCount);
                     return newImages;
                 });
             }
