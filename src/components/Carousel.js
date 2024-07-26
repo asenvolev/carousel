@@ -21,16 +21,13 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
                     e.preventDefault();
                 }
             };
-            // const onResize = throttle(() => setCurrentIndexWithoutTransition(imagesToShiftCount), 10);
 
 
             carousel.addEventListener('wheel', onWheel);
             carousel.addEventListener("keydown", preventArrowKeyScroll);
-            // window.addEventListener('resize', onResize);
             return () => {
                 carousel.removeEventListener("keydown", preventArrowKeyScroll);
                 carousel.removeEventListener('wheel', onWheel);
-                // window.removeEventListener('resize', onResize);
             };
         }
     }, []);
