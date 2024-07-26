@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { throttle } from "../utils/helpers";
 
-const DEFAULT_TRANSLATE = -window.innerWidth * 2
+const DEFAULT_TRANSLATE = -window.innerWidth * 9
 
 const Carousel = ({imageUrls}) => {
     const carouselRef = useRef(null);
@@ -10,7 +10,7 @@ const Carousel = ({imageUrls}) => {
     const [translateX, setTranslateX] = useState(DEFAULT_TRANSLATE);
     const [initialTranslateX, setInitialTranslateX] = useState(0);
     const [transitionEnabled, setTransitionEnabled] = useState(true);
-    const [imageIndexes, setImageIndexes] = useState(Array.from({ length: 5 }, (_, index) => index));
+    const [imageIndexes, setImageIndexes] = useState(Array.from({ length: 20 }, (_, index) => index));
 
 
     useEffect(() => {
@@ -21,7 +21,7 @@ const Carousel = ({imageUrls}) => {
                     e.preventDefault();
                 }
             };
-            const onResize = throttle(() => setTranslateXWithoutTransition(-window.innerWidth * 2), 1);
+            const onResize = throttle(() => setTranslateXWithoutTransition(-window.innerWidth * 9), 1);
 
 
             carousel.addEventListener('wheel', onWheel);
@@ -43,14 +43,14 @@ const Carousel = ({imageUrls}) => {
             const currentSlide = Math.round(translateX / -slideWidth);
             if (currentSlide < 2) {
                 setImageIndexes(prevImages => {
-                    const newImages = [prevImages[0] - 1, ...prevImages.slice(0, -1)];
-                    setTranslateXWithoutTransition(-slideWidth * 2);
+                    const newImages = [...Array.from({ length: 9 }, (_, i) => prevImages[0] - (i + 1)).reverse(), ...prevImages.slice(0, -9)];
+                    setTranslateXWithoutTransition(-slideWidth * 10);
                     return newImages;
                 });
-            } else if (currentSlide > 2) {
+            } else if (currentSlide > 17) {
                 setImageIndexes(prevImages => {
-                    const newImages = [...prevImages.slice(1), prevImages[prevImages.length - 1] + 1];
-                    setTranslateXWithoutTransition(-slideWidth * 2);
+                    const newImages = [...prevImages.slice(9), ...Array.from({ length: 9 }, (_, i) => prevImages[prevImages.length - 1] + (i + 1))];
+                    setTranslateXWithoutTransition(-slideWidth * 9);
                     return newImages;
                 });
             }
@@ -125,7 +125,7 @@ const Carousel = ({imageUrls}) => {
                      return (
                      <CarouselImage 
                         key={index} 
-                        bgrimg={imageUrls[imgIndex]} 
+                        $bgrimg={imageUrls[imgIndex]} 
                     />)
                 })}
             </CarouselContainer>
@@ -156,6 +156,6 @@ const CarouselImage = styled.div`
     min-width: 100%;
     height: 100%;
     flex-shrink: 0;
-    background: transparent url(${props => props.bgrimg}) no-repeat center center;
+    background: transparent url(${props => props.$bgrimg}) no-repeat center center;
     background-size:cover;
 `;
