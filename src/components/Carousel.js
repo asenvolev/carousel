@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useMemo } from "react";
 import styled from "styled-components";
 import { throttle } from "../utils/helpers";
+import CarouselImage from './CarouselImage';
 
 const Carousel = ({imageUrls, imagesToShiftCount}) => {
     const carouselRef = useRef(null);
@@ -87,14 +88,11 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
         }
     }
 
-    const images = useMemo(()=> imageIndexes.map((val, index) => {
+    const images = useMemo(() => imageIndexes.map((val, index) => {
         const imgIndex = (val - imagesToShiftCount + imageUrls.length) % imageUrls.length;
-         return (
-         <CarouselImage 
-            key={index} 
-            $bgrimg={imageUrls[imgIndex ]} 
-        />)
-    }),[imageIndexes])
+        const imageUrl = imageUrls[imgIndex];
+        return <CarouselImage key={index} imageUrl={imageUrl} />;
+    }), [imageIndexes, imageUrls, imagesToShiftCount]);
 
     return (
         <CarouselWrapper>
@@ -130,12 +128,4 @@ const CarouselContainer = styled.div`
     display: flex;
     flex-wrap: no-wrap;
     align-items: center;
-`;
-
-const CarouselImage = styled.div`
-    min-width: 100%;
-    height: 100%;
-    flex-shrink: 0;
-    background: transparent url(${props => props.$bgrimg}) no-repeat center center;
-    background-size:cover;
 `;
