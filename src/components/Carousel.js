@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { throttle } from "../utils/helpers";
 
-
 const Carousel = ({imageUrls, imagesToShiftCount}) => {
     const carouselRef = useRef(null);
     const [startX, setStartX] = useState(0);
@@ -10,7 +9,6 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
     const [transitionEnabled, setTransitionEnabled] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(imagesToShiftCount);
     const [imageIndexes, setImageIndexes] = useState(Array.from({ length: 2*imagesToShiftCount+1 }, (_, index) => index));
-
 
     useEffect(() => {
         const carousel = carouselRef.current;
@@ -33,29 +31,33 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
         }
     }, []);
 
-
-    const addAndRemoveImage = () => {
-        if (currentIndex < 2) {
-            setImageIndexes(prevImages => {
-                const newImages = [...Array.from({ length: imagesToShiftCount }, (_, i) => prevImages[0] - (i + 1)).reverse(), ...prevImages.slice(0, -imagesToShiftCount)];
-                setCurrentIndexWithoutTransition(imagesToShiftCount+1);
-                return newImages;
-            });
-        } else if (currentIndex > imageIndexes.length - 2) {
-            setImageIndexes(prevImages => {
-                const newImages = [...prevImages.slice(imagesToShiftCount), ...Array.from({ length: imagesToShiftCount }, (_, i) => prevImages[prevImages.length - 1] + (i + 1))];
-                setCurrentIndexWithoutTransition(imagesToShiftCount);
-                return newImages;
-            });
-        }
+    const addIndexesInTheBeginningRemoveFromTheEnd = () => {
+        const indexesToAdd = Array.from({ length: imagesToShiftCount }, (_, i) => imageIndexes[0] - (i + 1)).reverse();
+        const indexesWithRemovedEnd = imageIndexes.slice(0, -imagesToShiftCount)
+        return [...indexesToAdd, ...indexesWithRemovedEnd]
     };
 
-    const setCurrentIndexWithoutTransition = (value) => {
+    const addIndexesInTheEndRemoveFromTheBeginning = () => {
+        const indexesToAdd = Array.from({ length: imagesToShiftCount }, (_, i) => imageIndexes[imageIndexes.length - 1] + (i + 1))
+        const indexesWithRemovedStart = imageIndexes.slice(imagesToShiftCount);
+        return [...indexesWithRemovedStart, ...indexesToAdd]
+    };
+
+    const addAndRemoveIndexes = () => {
         setTransitionEnabled(false);
-        setCurrentIndex(value);
-        requestAnimationFrame(() => {
-            setTransitionEnabled(true);
-        });
+
+        const newImageIndexes = currentIndex < 2 
+                    ? addIndexesInTheBeginningRemoveFromTheEnd()
+                    : addIndexesInTheEndRemoveFromTheBeginning();
+        
+        setImageIndexes(newImageIndexes);
+
+        requestAnimationFrame(()=>{
+            setCurrentIndex(() => {
+                requestAnimationFrame(() => setTransitionEnabled(true));
+                return imagesToShiftCount + (currentIndex < 2 ? 1 : 0) 
+            });
+        })
     };
 
     const moveToNextSlide = (delta) => {
@@ -63,7 +65,7 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
             if (prevIndex % 1 !== 0) {
                 return delta < 0 ? Math.ceil(prevIndex) : Math.floor(prevIndex);
             }
-            return delta < 0 ? prevIndex + 1 : prevIndex - 1;
+            return prevIndex + (delta < 0 ? 1 : -1);
         });
     };
 
@@ -87,9 +89,9 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
     };
 
     const onTransitionEnd = () => {
-        if (!startX) {
-
-            addAndRemoveImage();
+        const shouldShiftIndexes = currentIndex < 2 || currentIndex > imageIndexes.length - 2;
+        if (!startX && shouldShiftIndexes) {
+            addAndRemoveIndexes();
         }
     }
 
@@ -101,15 +103,15 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
-                style={{ transform: `translateX(-${currentIndex*100}%)`, transition: transitionEnabled ? 'transform 0.3s ease' : 'none' }}
+                style={{ transform: `translate3d(-${currentIndex*100}%, 0, 0)`, transition: transitionEnabled ? 'transform 0.3s ease' : 'none' }}
                 onTransitionEnd={onTransitionEnd}
             >
                 {imageIndexes.map((val, index) => {
-                    const imgIndex = (val + imageUrls.length) % imageUrls.length;
+                    const imgIndex = (val - imagesToShiftCount + imageUrls.length) % imageUrls.length;
                      return (
                      <CarouselImage 
                         key={index} 
-                        $bgrimg={imageUrls[imgIndex]} 
+                        $bgrimg={imageUrls[imgIndex ]} 
                     />)
                 })}
             </CarouselContainer>
@@ -118,8 +120,6 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
 };
 
 export default Carousel;
-
-
 
 const CarouselWrapper = styled.div`
     width: 100%;
