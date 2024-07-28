@@ -88,10 +88,10 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
         }
     }
 
-    const images = useMemo(() => imageIndexes.map((val, index) => {
+    const images = useMemo(() => imageIndexes.map((val) => {
         const imgIndex = (val - imagesToShiftCount + imageUrls.length) % imageUrls.length;
         const imageUrl = imageUrls[imgIndex];
-        return <CarouselImage key={index} imageUrl={imageUrl} />;
+        return <CarouselImage key={imgIndex} imageUrl={imageUrl} />;
     }), [imageIndexes, imageUrls, imagesToShiftCount]);
 
     return (
