@@ -17,7 +17,7 @@ const CarouselImage : FC<Props> = ({ imageUrl }) => {
 
     return (
         <Image data-testid="carousel-image"
-            bgrImage={imageUrl} 
+            $bgrimage={imageUrl} 
             opacity={isLoaded ? 1 : 0.5}
         />
     );
@@ -25,11 +25,11 @@ const CarouselImage : FC<Props> = ({ imageUrl }) => {
 
 export default memo(CarouselImage);
 
-const Image = styled.div<{bgrImage: string; opacity: number}>`
+const Image = styled.div<{$bgrimage: string; opacity: number}>`
     min-width: 100%;
     height: 100%;
     flex-shrink: 0;
-    background: transparent url(${({bgrImage}) => bgrImage}) no-repeat center center;
+    background: transparent url(${({$bgrimage}) => $bgrimage}) no-repeat center center;
     background-size: cover;
     opacity:${({opacity}) => opacity};
     transition: opacity 0.1s ease;
