@@ -32,7 +32,7 @@ const App = () => {
 
 
   if (isLoading) {
-    return <Loading>Preloading {IMAGES_COUNT} images. Please wait</Loading>;
+    return <Loading>Preloading {IMAGES_COUNT} images. Please wait...</Loading>;
   }
 
   return (

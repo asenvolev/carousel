@@ -97,6 +97,7 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
     return (
         <CarouselWrapper>
             <CarouselContainer
+                data-testid="carousel-container"
                 ref={carouselRef}
                 tabIndex={0}
                 onWheel={throttledOnWheel}

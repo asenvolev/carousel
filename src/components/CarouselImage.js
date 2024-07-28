@@ -7,13 +7,12 @@ const CarouselImage = ({ imageUrl }) => {
 
     useEffect(() => {
         setIsLoaded(false);
-        loadImage(imageUrl)
-            .then(() => setIsLoaded(true))
+        loadImage(imageUrl).then(() => setIsLoaded(true))
             .catch(error => console.error(`Error loading image: ${imageUrl}`, error));
     }, [imageUrl]);
 
     return (
-        <Image 
+        <Image data-testid="carousel-image"
             $bgrimg={imageUrl} 
             $opacity={isLoaded ? 1 : 0.5}
         />
