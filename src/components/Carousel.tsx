@@ -37,12 +37,12 @@ const Carousel : FC<Props> = ({imageUrls, imagesToShiftCount}) => {
         
         setImageIndexes(newImageIndexes);
 
-        requestAnimationFrame(()=>{
-            setCurrentIndex(() => {
+        setCurrentIndex((prevIndex) => {
+            requestAnimationFrame(()=>{
                 requestAnimationFrame(() => setTransitionEnabled(true));
-                return imagesToShiftCount + (currentIndex < 2 ? 1 : 0) 
-            });
-        })
+            })
+            return imagesToShiftCount + (prevIndex < 2 ? 1 : 0) 
+        });
     };
 
     const moveToNextSlide = useCallback((delta:number) => {
@@ -58,7 +58,7 @@ const Carousel : FC<Props> = ({imageUrls, imagesToShiftCount}) => {
         moveToNextSlide(event.deltaY);
     },[moveToNextSlide]);
 
-    const throttledOnWheel = useMemo(() => throttle(onWheel, 150), [onWheel]);
+    const throttledOnWheel = useMemo(() => throttle(onWheel, 350), [onWheel]);
 
     const onTouchStart = (event: TouchEvent<HTMLDivElement>) => {
         setStartX(event.touches[0].pageX);
