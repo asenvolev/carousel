@@ -1,15 +1,20 @@
-import { useRef, useState, useCallback, useMemo } from "react";
+import { useRef, useState, useCallback, useMemo, FC, TouchEvent, WheelEvent, KeyboardEvent } from "react";
 import styled from "styled-components";
 import { throttle } from "../utils/helpers";
 import CarouselImage from './CarouselImage';
 
-const Carousel = ({imageUrls, imagesToShiftCount}) => {
-    const carouselRef = useRef(null);
-    const [startX, setStartX] = useState(0);
-    const [touchStartIndex, setTouchStartIndex] = useState(0);
-    const [transitionEnabled, setTransitionEnabled] = useState(true);
-    const [currentIndex, setCurrentIndex] = useState(imagesToShiftCount);
-    const [imageIndexes, setImageIndexes] = useState(Array.from({ length: 2*imagesToShiftCount+1 }, (_, index) => index));
+interface Props {
+    imageUrls: string[];
+    imagesToShiftCount: number;
+}
+
+const Carousel : FC<Props> = ({imageUrls, imagesToShiftCount}) => {
+    const carouselRef = useRef<HTMLDivElement | null>(null);
+    const [startX, setStartX] = useState<number>(0);
+    const [touchStartIndex, setTouchStartIndex] = useState<number>(0);
+    const [transitionEnabled, setTransitionEnabled] = useState<boolean>(true);
+    const [currentIndex, setCurrentIndex] = useState<number>(imagesToShiftCount);
+    const [imageIndexes, setImageIndexes] = useState<number[]>(Array.from({ length: 2*imagesToShiftCount+1 }, (_, index) => index));
 
     const addIndexesInTheBeginningRemoveFromTheEnd = () => {
         const indexesToAdd = Array.from({ length: imagesToShiftCount }, (_, i) => imageIndexes[0] - (i + 1)).reverse();
@@ -40,7 +45,7 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
         })
     };
 
-    const moveToNextSlide = useCallback((delta) => {
+    const moveToNextSlide = useCallback((delta:number) => {
         setCurrentIndex(prevIndex => {
             if (prevIndex % 1 !== 0) {
                 return delta < 0 ? Math.ceil(prevIndex) : Math.floor(prevIndex);
@@ -49,36 +54,36 @@ const Carousel = ({imageUrls, imagesToShiftCount}) => {
         });
     },[]);
 
-    const onWheel = useCallback((e) => {
-        moveToNextSlide(e.deltaY);
+    const onWheel = useCallback((event: WheelEvent<HTMLDivElement>) => {
+        moveToNextSlide(event.deltaY);
     },[moveToNextSlide]);
 
     const throttledOnWheel = useMemo(() => throttle(onWheel, 150), [onWheel]);
 
-    const onTouchStart = (e) => {
-        setStartX(e.touches[0].pageX);
+    const onTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+        setStartX(event.touches[0].pageX);
         setTouchStartIndex(currentIndex);
     };
 
-    const onTouchMove = useCallback((e) => {
-        const x = e.touches[0].pageX;
+    const onTouchMove = useCallback((event: TouchEvent<HTMLDivElement>) => {
+        if (!carouselRef.current) return;
+        const x = event.touches[0].pageX;
         const walk = x - startX;
         const percentageWalk = (walk / carouselRef.current.clientWidth);
         setCurrentIndex(touchStartIndex - percentageWalk);
-        console.log(e);
     }, [startX, touchStartIndex]);
 
     const throttledOnTouchMove = useMemo(() => throttle(onTouchMove, 150), [onTouchMove]);
 
-    const onTouchEnd = (e) => {
-        const endX = e.changedTouches[0].pageX;
+    const onTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+        const endX = event.changedTouches[0].pageX;
         const deltaX = endX - startX;
         moveToNextSlide(deltaX);
         setStartX(0);
     };
 
-    const onKeyDown = (e) => {
-        e.preventDefault();
+    const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+        event.preventDefault();
     }
 
     const onTransitionEnd = () => {

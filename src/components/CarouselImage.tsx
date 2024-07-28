@@ -1,8 +1,12 @@
-import { useState, useEffect, memo } from "react";
+import { FC, useState, useEffect, memo } from "react";
 import styled from "styled-components";
 import { loadImage } from "../utils/helpers";
 
-const CarouselImage = ({ imageUrl }) => {
+interface Props {
+    imageUrl:string;
+}
+
+const CarouselImage : FC<Props> = ({ imageUrl }) => {
     const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
@@ -13,20 +17,20 @@ const CarouselImage = ({ imageUrl }) => {
 
     return (
         <Image data-testid="carousel-image"
-            $bgrimg={imageUrl} 
-            $opacity={isLoaded ? 1 : 0.5}
+            bgrImage={imageUrl} 
+            opacity={isLoaded ? 1 : 0.5}
         />
     );
 };
 
 export default memo(CarouselImage);
 
-const Image = styled.div`
+const Image = styled.div<{bgrImage: string; opacity: number}>`
     min-width: 100%;
     height: 100%;
     flex-shrink: 0;
-    background: transparent url(${({$bgrimg}) => $bgrimg}) no-repeat center center;
+    background: transparent url(${({bgrImage}) => bgrImage}) no-repeat center center;
     background-size: cover;
-    opacity:${({$opacity}) => $opacity};
+    opacity:${({opacity}) => opacity};
     transition: opacity 0.1s ease;
 `;

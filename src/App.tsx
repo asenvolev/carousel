@@ -1,14 +1,23 @@
-import { useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import Carousel from './components/Carousel';
 import styled from "styled-components";
 import { preloadImages } from "./utils/helpers";
 
 const IMAGES_COUNT = 100;
 
-const App = () => {
+interface Image {
+  id: number;
+  author:  string;
+  width:  number;
+  height:  number;
+  url: string;
+  download_url: string;
+}
 
-  const [imageUrls, setImageUrls] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+const App : FC = () => {
+
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     fetchImages();
@@ -17,7 +26,7 @@ const App = () => {
   const fetchImages = async () => {
     try {
         const response = await fetch(`https://picsum.photos/v2/list?limit=${IMAGES_COUNT}`);
-        const data = await response.json();
+        const data = await response.json() as Image[];
         const urls = data.map(image => image.download_url);
 
         await preloadImages(urls);
